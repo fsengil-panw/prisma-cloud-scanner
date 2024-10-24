@@ -27,6 +27,7 @@ env:
   PRISMA_API_URL: ${{ secrets.PRISMA_API_URL }}
   PRISMA_ACCESS_KEY: ${{ secrets.PRISMA_ACCESS_KEY }}
   PRISMA_SECRET_KEY: ${{ secrets.PRISMA_SECRET_KEY }}
+  PRISMA_COMPUTE_URL: ${{ secrets.PRISMA_COMPUTE_URL }}
   
 jobs:
   build:
@@ -39,18 +40,6 @@ jobs:
       - name: Build the Docker image
         run: docker pull ${{ github.event.inputs.container_image }}
 
-      # Call API to get COPUPUTE URL value
-      - name: Get the COMPUTE URL from API
-        id: get-compute-url
-        run: |
-          response=$(curl -s -k -u ${{ secrets.PRISMA_ACCESS_KEY }}:${{ secrets.PRISMA_SECRET_KEY }} "${{ secrets.PRISMA_API_URL }}/meta_info")
-          echo "API Response: $response"
-          twistlockUrl=$(echo $response | jq -r .twistlockUrl)
-          echo "PRISMA_COMPUTE_URL=$twistlockUrl" >> $GITHUB_ENV     
-          
-      - name: Output PRISMA_COMPUTE_URL
-        run: echo "PRISMA_COMPUTE_URL is ${{ env.PRISMA_COMPUTE_URL }}"
-
       - name: Prisma Cloud Scan with Task
         uses: PaloAltoNetworks/prisma-cloud-scan@v1
         with:
@@ -61,12 +50,12 @@ jobs:
 
        #Prisma Cloud Code Repo Scan
       - name: Twistcli download   
-        run: curl -s -k -u ${{ secrets.PRISMA_ACCESS_KEY }}:${{ secrets.PRISMA_SECRET_KEY }} ${{ env.PRISMA_COMPUTE_URL }}/api/v1/util/twistcli -v -o /tmp/twistcli;chmod +x /tmp/twistcli
+        run: curl -s -k -u ${{ secrets.PRISMA_ACCESS_KEY }}:${{ secrets.PRISMA_SECRET_KEY }} ${{ secrets.PRISMA_COMPUTE_URL }}/api/v1/util/twistcli -v -o /tmp/twistcli;chmod +x /tmp/twistcli
         
       - name: Scan for vulnerabilities
-        run: /tmp/twistcli images scan --address ${{ env.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --details ${{ github.event.inputs.container_image }}
+        run: /tmp/twistcli images scan --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --details ${{ github.event.inputs.container_image }}
 
       #Prisma Cloud Code Repo Scan
       - name: Sandbox with Prisma Cloud
-        run: sudo /tmp/twistcli sandbox --address ${{ env.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 30s  "${{ github.event.inputs.container_env_variables }}" ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
+        run: sudo /tmp/twistcli sandbox --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 30s  "${{ github.event.inputs.container_env_variables }}" ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
 
