@@ -10,9 +10,9 @@ on:
         required: true
         default: ''
       container_env_variables:
-        description: 'Environment varaibles'
+        description: 'Environment varaibles (e.g.: -e "MY_ENV_VAR1=gfd45gdf7gterte8gsgds7gds5" -e "MY_ENV_VAR2=erte8gsgds7gds5")'
         required: false
-        default: '-e "MY_ENV_VAR1=gfd45gdf7gterte8gsgds7gds5" -e "MY_ENV_VAR2=erte8gsgds7gds5"'
+        default: ''
       container_app:
         description: 'How to start the application'
         required: false
@@ -57,5 +57,5 @@ jobs:
 
       #Prisma Cloud Code Repo Scan
       - name: Sandbox with Prisma Cloud
-        run: sudo /tmp/twistcli sandbox --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 30s  "${{ github.event.inputs.container_env_variables }}" ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
+        run: sudo /tmp/twistcli sandbox --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 30s  ${{ github.event.inputs.container_env_variables }} ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
 
