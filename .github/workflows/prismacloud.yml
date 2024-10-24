@@ -1,0 +1,52 @@
+name: Scan Container Image with Prisma Cloud
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      container_image:
+        description: 'The Container image you would like to scan.'
+        required: true
+        default: ''
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+    
+env:
+  PRISMA_API_URL: ${{ secrets.PRISMA_API_URL }}
+  PRISMA_ACCESS_KEY: ${{ secrets.PRISMA_ACCESS_KEY }}
+  PRISMA_SECRET_KEY: ${{ secrets.PRISMA_SECRET_KEY }}
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Docker Pull image
+      - name: Build the Docker image
+        run: docker pull ${{ github.event.inputs.container_image }}
+
+      - name: Prisma Cloud Scan with Task
+        uses: PaloAltoNetworks/prisma-cloud-scan@v1
+        with:
+          pcc_console_url: ${{ secrets.PRISMA_COMPUTE_URL }}
+          pcc_user: ${{ secrets.PRISMA_ACCESS_KEY }}
+          pcc_pass: ${{ secrets.PRISMA_SECRET_KEY }}
+          image_name: ${{ github.event.inputs.container_image }}
+
+       #Prisma Cloud Code Repo Scan
+      - name: Twistcli download   
+        run: curl -s -k -u ${{ secrets.PCUSER }}:${{ secrets.PCPASS }} ${{ env.PRISMA_CLOUD_CONSOLE }}/api/v1/util/twistcli -v -o /tmp/twistcli;chmod +x /tmp/twistcli
+        
+      - name: Scan for vulnerabilities
+        run: /tmp/twistcli images scan --address ${{ env.PRISMA_CLOUD_CONSOLE }} -u ${{ secrets.PCUSER }} -p ${{ secrets.PCPASS }} --details ${{ github.event.inputs.container_image }}
+
+      #Prisma Cloud Code Repo Scan
+      - name: Sandbox with Prisma Cloud
+        run: sudo /tmp/twistcli sandbox --address ${{ env.PRISMA_CLOUD_CONSOLE }} -u ${{ secrets.PCUSER }} -p ${{ secrets.PCPASS }} --analysis-duration 30s ${{ github.event.inputs.container_image }}
+
