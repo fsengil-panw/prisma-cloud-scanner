@@ -57,5 +57,5 @@ jobs:
 
       #Prisma Cloud Code Repo Scan
       - name: Sandbox with Prisma Cloud
-        run: sudo /tmp/twistcli sandbox --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 30s  ${{ github.event.inputs.container_env_variables }} ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
+        run: sudo /tmp/twistcli sandbox --address ${{ secrets.PRISMA_COMPUTE_URL }} -u ${{ secrets.PRISMA_ACCESS_KEY }} -p ${{ secrets.PRISMA_SECRET_KEY }} --analysis-duration 60s  ${{ github.event.inputs.container_env_variables }} ${{ github.event.inputs.container_image }} ${{ github.event.inputs.container_app }}
 
